@@ -121,3 +121,9 @@
 #gpt-queue-popover .gqp-input { border: 1px solid var(--border-light, rgba(255,255,255,0.1)); background: var(--composer-surface, rgba(0,0,0,0.25)); color: var(--text-primary, #eee); padding: 8px 10px; border-radius: 8px; outline: none; }
 #gpt-queue-popover .gqp-add { padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-light, rgba(255,255,255,0.1)); background: var(--interactive-bg-secondary-hover, rgba(255,255,255,0.08)); color: var(--text-primary, #fff); cursor: pointer; }
 #gpt-queue-popover .gqp-add:hover { background: var(--interactive-bg-secondary-press, rgba(255,255,255,0.16)); }
+
+/* PowerChat: link reference token */
+.pc-ref { display: inline-flex; align-items: center; gap: 6px; padding: 2px 8px; border-radius: 999px; background: rgba(255,255,255,0.08); border: 1px solid var(--border-light, rgba(255,255,255,0.12)); color: var(--text-primary, #eaeaea); }
+.pc-ref .pc-ref-badge { font-weight: 600; opacity: 0.9; }
+.pc-ref .pc-ref-host { opacity: 0.85; }
+.pc-ref[contenteditable="false"] { user-select: none; }

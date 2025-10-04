@@ -188,6 +188,19 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         break;
       }
 
+      // PowerChat: Link reference markdown fetch (scaffold)
+      case 'LINKREF_FETCH_MD': {
+        try {
+          // Scaffold: return placeholder markdown. Replace with real service call.
+          const url = String(msg.url || '').trim();
+          const md = `Referenced URL: ${url}\n\n(Integrate markdown fetcher service)`;
+          sendResponse({ ok: true, md });
+        } catch (err) {
+          sendResponse({ ok: false, error: String(err?.message || err) });
+        }
+        break;
+      }
+
       default:
         break;
     }

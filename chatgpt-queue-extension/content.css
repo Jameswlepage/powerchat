@@ -1,0 +1,114 @@
+/* content.css */
+#gpt-queue-panel {
+  position: fixed;
+  right: 16px;
+  top: 72px; /* dock under header */
+  z-index: 2147483647;
+  width: 320px;
+  max-height: 50vh;
+  font: 13px/1.3 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+  color: #eaeaea;
+  background: rgba(20,20,20,0.92);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+  overflow: hidden;
+  user-select: none;
+}
+
+#gpt-queue-panel .gqp-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 10px; background: rgba(255,255,255,0.04);
+}
+#gpt-queue-panel .gqp-title { font-weight: 600; }
+
+#gpt-queue-panel .gqp-actions { display: flex; gap: 6px; }
+#gpt-queue-panel .gqp-btn {
+  border: none; background: transparent; color: inherit; cursor: pointer; padding: 4px 6px;
+  border-radius: 6px;
+}
+#gpt-queue-panel .gqp-btn:hover { background: rgba(255,255,255,0.08); }
+/* icon sizing */
+#gpt-queue-panel .gqp-btn svg { width: 16px; height: 16px; display: block; }
+
+#gpt-queue-panel .gqp-body { padding: 10px; display: grid; gap: 8px; }
+#gpt-queue-panel .gqp-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+#gpt-queue-panel .gqp-input {
+  border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.25); color: #eee;
+  padding: 8px 10px; border-radius: 8px; outline: none;
+}
+#gpt-queue-panel .gqp-add {
+  padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.08); color: #fff; cursor: pointer;
+}
+#gpt-queue-panel .gqp-add:hover { background: rgba(255,255,255,0.16); }
+
+#gpt-queue-panel .gqp-list {
+  list-style: none; margin: 0; padding: 0; overflow: auto; max-height: 28vh; display: grid; gap: 6px;
+}
+#gpt-queue-panel .gqp-item {
+  display: grid; grid-template-columns: 1fr auto; align-items: start; gap: 6px;
+  padding: 8px; border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; background: rgba(255,255,255,0.03);
+}
+#gpt-queue-panel .gqp-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+#gpt-queue-panel .gqp-foot { display: flex; justify-content: space-between; color: #a8a8a8; font-size: 12px; }
+#gpt-queue-panel .gqp-status { font-weight: 600; }
+#gpt-queue-panel .gqp-hint { opacity: 0.8; }
+
+#gpt-queue-panel.gqp-collapsed .gqp-body { display: none; }
+#gpt-queue-panel[data-paused="true"] .gqp-status::after { content: " (paused)"; color: #ffcf66; }
+
+/* Header queue button (next to Share) */
+#gqp-header-queue-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 36px;
+  min-width: 36px;
+  padding: 0 10px;
+  margin-left: 8px;
+  border-radius: 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--token-text-primary, #eaeaea);
+  position: relative;
+}
+#gqp-header-queue-btn:hover { background: var(--token-surface-hover, rgba(255,255,255,0.08)); }
+#gqp-header-queue-btn .label { font-size: 14px; }
+
+/* Blue dot indicator when queue has items */
+#gqp-header-queue-btn[data-has-items="true"]::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 8px;
+  height: 8px;
+  background: #3b82f6; /* blue */
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--token-main-surface-primary, #111);
+}
+
+/* Popover */
+#gpt-queue-popover {
+  position: absolute;
+  z-index: 2147483647;
+  width: 360px;
+  max-height: 60vh;
+  color: #eaeaea;
+  background: rgba(20,20,20,0.98);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 100px; /* fully rounded */
+  box-shadow: 0 12px 28px rgba(0,0,0,0.45);
+  overflow: hidden;
+}
+#gpt-queue-popover.hidden { display: none; }
+#gpt-queue-popover .gqp-body { padding: 10px; display: grid; gap: 8px; }
+#gpt-queue-popover .gqp-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+#gpt-queue-popover .gqp-list { list-style: none; margin: 0; padding: 0; overflow: auto; max-height: 40vh; display: grid; gap: 6px; }
+#gpt-queue-popover .gqp-item { display: grid; grid-template-columns: 1fr auto; gap: 6px; padding: 8px; border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; background: rgba(255,255,255,0.04); }
+#gpt-queue-popover .gqp-input { border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.25); color: #eee; padding: 8px 10px; border-radius: 8px; outline: none; }
+#gpt-queue-popover .gqp-add { padding: 8px 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.08); color: #fff; cursor: pointer; }
+#gpt-queue-popover .gqp-add:hover { background: rgba(255,255,255,0.16); }

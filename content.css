@@ -47,10 +47,12 @@
   list-style: none; margin: 0; padding: 0; overflow: auto; max-height: 28vh; display: grid; gap: 6px;
 }
 #gpt-queue-panel .gqp-item {
-  display: grid; grid-template-columns: 1fr auto; align-items: start; gap: 6px;
+  display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 8px;
   padding: 8px; border: 1px solid var(--border-light, rgba(255,255,255,0.06)); border-radius: 8px; background: var(--interactive-bg-secondary-hover, rgba(255,255,255,0.03));
 }
+#gpt-queue-panel .gqp-num { width: 1.5em; text-align: center; opacity: 0.7; font-variant-numeric: tabular-nums; }
 #gpt-queue-panel .gqp-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#gpt-queue-panel .gqp-text.gqp-editing { background: rgba(255,255,255,0.06); outline: 1px solid var(--border-light, rgba(255,255,255,0.12)); border-radius: 4px; padding: 2px 4px; }
 
 #gpt-queue-panel .gqp-foot { display: flex; justify-content: space-between; color: #a8a8a8; font-size: 12px; }
 #gpt-queue-panel .gqp-status { font-weight: 600; }
@@ -113,7 +115,9 @@
 #gpt-queue-popover .gqp-body { padding: 10px; display: grid; gap: 8px; }
 #gpt-queue-popover .gqp-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
 #gpt-queue-popover .gqp-list { list-style: none; margin: 0; padding: 0; overflow: auto; max-height: 40vh; display: grid; gap: 6px; }
-#gpt-queue-popover .gqp-item { display: grid; grid-template-columns: 1fr auto; gap: 6px; padding: 8px; border: 1px solid var(--border-light, rgba(255,255,255,0.06)); border-radius: 8px; background: var(--interactive-bg-secondary-hover, rgba(255,255,255,0.04)); }
+#gpt-queue-popover .gqp-item { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 8px; padding: 8px; border: 1px solid var(--border-light, rgba(255,255,255,0.06)); border-radius: 8px; background: var(--interactive-bg-secondary-hover, rgba(255,255,255,0.04)); }
+#gpt-queue-popover .gqp-num { width: 1.5em; text-align: center; opacity: 0.7; font-variant-numeric: tabular-nums; }
+#gpt-queue-popover .gqp-text.gqp-editing { background: rgba(255,255,255,0.06); outline: 1px solid var(--border-light, rgba(255,255,255,0.12)); border-radius: 4px; padding: 2px 4px; }
 #gpt-queue-popover .gqp-input { border: 1px solid var(--border-light, rgba(255,255,255,0.1)); background: var(--composer-surface, rgba(0,0,0,0.25)); color: var(--text-primary, #eee); padding: 8px 10px; border-radius: 8px; outline: none; }
 #gpt-queue-popover .gqp-add { padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-light, rgba(255,255,255,0.1)); background: var(--interactive-bg-secondary-hover, rgba(255,255,255,0.08)); color: var(--text-primary, #fff); cursor: pointer; }
 #gpt-queue-popover .gqp-add:hover { background: var(--interactive-bg-secondary-press, rgba(255,255,255,0.16)); }

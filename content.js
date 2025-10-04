@@ -279,6 +279,24 @@ function createPanel() {
     }
   });
 
+  // Inline edit events (panel)
+  root.addEventListener('dblclick', (e) => {
+    const txt = e.target.closest('.gqp-text');
+    if (txt) startInlineEdit(txt);
+  });
+  root.addEventListener('keydown', (e) => {
+    const txt = e.target.closest('.gqp-text');
+    if (!txt) return;
+    if (txt.isContentEditable) {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); e.stopPropagation(); commitInlineEdit(txt); }
+      if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); cancelInlineEdit(txt); }
+    }
+  }, true);
+  root.addEventListener('blur', (e) => {
+    const txt = e.target.closest('.gqp-text');
+    if (txt && txt.isContentEditable) commitInlineEdit(txt);
+  }, true);
+
   const addBtn = root.querySelector('.gqp-add');
   const input = root.querySelector('.gqp-input');
   addBtn.addEventListener('click', () => {
@@ -310,11 +328,13 @@ function updatePanel(queue = [], paused = false) {
   }
   const list = root.querySelector('.gqp-list');
   list.innerHTML = '';
-  for (const item of queue) {
+  for (let i = 0; i < queue.length; i++) {
+    const item = queue[i];
     const li = document.createElement('li');
     li.className = 'gqp-item';
     li.innerHTML = `
-      <span class="gqp-text" title="${item.text.replace(/\"/g, '&quot;')}">${escapeHtml(item.text)}</span>
+      <span class="gqp-num">${i + 1}</span>
+      <span class="gqp-text" data-id="${item.id}" title="${item.text.replace(/\"/g, '&quot;')}">${escapeHtml(item.text)}</span>
       <button class="gqp-btn gqp-remove" data-id="${item.id}" title="Remove" aria-label="Remove">
         <svg viewBox="0 0 24 24"><line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
       </button>
@@ -472,6 +492,24 @@ function createPopover() {
     inEl.focus();
   });
   inEl?.addEventListener('keydown', (e) => { if (e.key === 'Enter') addEl.click(); });
+
+  // Inline edit events (popover)
+  pop.addEventListener('dblclick', (e) => {
+    const txt = e.target.closest('.gqp-text');
+    if (txt) startInlineEdit(txt);
+  });
+  pop.addEventListener('keydown', (e) => {
+    const txt = e.target.closest('.gqp-text');
+    if (!txt) return;
+    if (txt.isContentEditable) {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); e.stopPropagation(); commitInlineEdit(txt); }
+      if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); cancelInlineEdit(txt); }
+    }
+  }, true);
+  pop.addEventListener('blur', (e) => {
+    const txt = e.target.closest('.gqp-text');
+    if (txt && txt.isContentEditable) commitInlineEdit(txt);
+  }, true);
 }
 
 function updateUIRoot(root, queue = [], paused = false) {
@@ -487,11 +525,13 @@ function updateUIRoot(root, queue = [], paused = false) {
   const list = root.querySelector('.gqp-list');
   if (!list) return;
   list.innerHTML = '';
-  for (const item of queue) {
+  for (let i = 0; i < queue.length; i++) {
+    const item = queue[i];
     const li = document.createElement('li');
     li.className = 'gqp-item';
     li.innerHTML = `
-      <span class="gqp-text" title="${item.text.replace(/\"/g, '&quot;')}">${escapeHtml(item.text)}</span>
+      <span class="gqp-num">${i + 1}</span>
+      <span class="gqp-text" data-id="${item.id}" title="${item.text.replace(/\"/g, '&quot;')}">${escapeHtml(item.text)}</span>
       <button class="gqp-btn gqp-remove" data-id="${item.id}" title="Remove" aria-label="Remove"></button>
     `;
     const x = gqpIcon('x');
@@ -503,6 +543,36 @@ function updateUIRoot(root, queue = [], paused = false) {
   const state = paused ? 'paused' : (busy ? 'busy' : 'idle');
   root.dataset.state = state;
   if (status) status.textContent = (state === 'busy' ? 'thinking…' : state);
+}
+
+// Inline edit helpers
+function startInlineEdit(el) {
+  if (!el || el.isContentEditable) return;
+  el.dataset.prev = el.textContent;
+  el.contentEditable = 'true';
+  el.spellcheck = true;
+  el.classList.add('gqp-editing');
+  el.focus();
+  placeCaretAtEnd(el);
+}
+function commitInlineEdit(el) {
+  if (!el || !el.isContentEditable) return;
+  const id = el.dataset.id;
+  const prev = el.dataset.prev || '';
+  const text = (el.textContent || '').trim();
+  el.contentEditable = 'false';
+  el.classList.remove('gqp-editing');
+  delete el.dataset.prev;
+  if (text === prev) return;
+  chrome.runtime.sendMessage({ type: 'QUEUE_UPDATE', id, text });
+}
+function cancelInlineEdit(el) {
+  if (!el || !el.isContentEditable) return;
+  const prev = el.dataset.prev || '';
+  el.textContent = prev;
+  el.contentEditable = 'false';
+  el.classList.remove('gqp-editing');
+  delete el.dataset.prev;
 }
 
 function updateAllUIs(queue, paused) {

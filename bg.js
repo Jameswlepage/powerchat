@@ -109,6 +109,22 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         break;
       }
 
+      case 'QUEUE_UPDATE': {
+        const s = await getState(tabId);
+        const id = String(msg.id || '');
+        const text = String(msg.text || '').trim();
+        const idx = s.queue.findIndex(it => it.id === id);
+        if (idx !== -1) {
+          s.queue[idx] = { ...s.queue[idx], text };
+          await save(tabId);
+          await broadcast(tabId);
+          sendResponse({ ok: true });
+        } else {
+          sendResponse({ ok: false, error: 'not_found' });
+        }
+        break;
+      }
+
       case 'QUEUE_CLEAR': {
         const s = await getState(tabId);
         s.queue = [];

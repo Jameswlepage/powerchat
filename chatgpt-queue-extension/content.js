@@ -446,7 +446,10 @@ function updateUIRoot(root, queue = [], paused = false) {
     list.appendChild(li);
   }
   const status = root.querySelector('.gqp-status');
-  if (status) status.textContent = (paused ? 'paused' : (getStopButton() ? 'thinking…' : 'idle'));
+  const busy = !!getStopButton();
+  const state = paused ? 'paused' : (busy ? 'busy' : 'idle');
+  root.dataset.state = state;
+  if (status) status.textContent = (state === 'busy' ? 'thinking…' : state);
 }
 
 function updateAllUIs(queue, paused) {

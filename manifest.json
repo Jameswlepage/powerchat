@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "ChatGPT Queue & Auto-Send",
+  "name": "PowerChat — Queue & Auto‑Send",
   "version": "1.0.0",
-  "description": "Queue messages and auto-send the next one when ChatGPT is ready.",
+  "description": "PowerChat adds handy tools to AI chat UIs. Queue messages and auto‑send the next one when ChatGPT or Claude is ready.",
   "permissions": ["storage", "scripting", "activeTab", "tabs"],
   "host_permissions": [
     "https://chat.openai.com/*",
@@ -27,6 +27,6 @@
     }
   ],
   "action": {
-    "default_title": "ChatGPT Queue & Auto-Send"
+    "default_title": "PowerChat — Queue & Auto‑Send"
   }
 }

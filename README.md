@@ -1,8 +1,10 @@
-# ChatGPT Queue & Auto‑Send (MV3)
+# PowerChat — Extensions for AI Chat (MV3)
 
-Queue multiple prompts on ChatGPT and Claude, and auto‑send them one‑by‑one whenever the page finishes “thinking.” A header “Queue” button opens a popover to view/manage the queue; Enter queues from the main editor.
+PowerChat is a collection of lightweight tools that enhance popular AI chat interfaces like ChatGPT and Claude.
 
-> Use responsibly and in line with website terms. Selectors are tailored to ChatGPT’s current composer and may need updates if the site changes.
+Current tool: Queue & Auto‑Send — queue multiple prompts and auto‑send them one‑by‑one whenever the page finishes “thinking.” Use the header Queue button to view/manage the queue; Enter queues from the main editor.
+
+Use responsibly and in line with website terms. Selectors are tailored to each site’s current UI and may need updates if the site changes.
 
 ## Features
 - Works on ChatGPT and Claude
@@ -13,29 +15,29 @@ Queue multiple prompts on ChatGPT and Claude, and auto‑send them one‑by‑on
 
 ## File Tree
 ```
-chatgpt-queue-extension/
-├─ manifest.json        # MV3 manifest
-├─ bg.js                # Background service worker (queue/state per tab)
-├─ content.js           # Panel UI + DOM watcher + typing/sending
-├─ content.css          # Panel styles
+manifest.json        # MV3 manifest
+bg.js                # Background service worker (queue/state per tab)
+content.js           # UI + DOM watcher + typing/sending
+content.css          # Styles for panel/popover
+icons.js             # Inline SVGs
 ```
 
 ## Install (Load Unpacked)
 1. Open `chrome://extensions`
 2. Toggle “Developer mode”
-3. Click “Load unpacked” and select the `chatgpt-queue-extension` folder
+3. Click “Load unpacked” and select this folder (the one containing `manifest.json`)
 4. Open ChatGPT (`https://chat.openai.com` or `https://chatgpt.com`) or Claude (`https://claude.ai`). A “Queue” button appears in the header.
 
 ## Usage
-- Add to queue: type in the panel or popover input and click “Add”
+- Add to queue: type in the popover input and click “Add”
 - Enter to queue: focus the main editor, type your message, press Enter to queue (does not send); Shift+Enter inserts a newline
-- Auto‑send: when the site is idle (no Stop button), the extension types the next queued message and sends it (clicks Send on ChatGPT; Enter fallback on Claude)
+- Auto‑send: when the site is idle (submit button shows “Send”/no Stop), the extension types the next queued message and sends it (clicks Send on ChatGPT; Enter fallback on Claude)
 - Controls: ⏯ Pause/Resume, 🗑 Clear queue, ✕ Remove one; header “Queue” button toggles a popover
 
 ## How It Works
 - Detects “thinking” by watching each site’s stop control:
-  - ChatGPT: `button[data-testid="stop-button"]` or `button[aria-label*="Stop streaming"]`
-  - Claude: `button[aria-label="Stop response"]`
+  - ChatGPT: `#composer-submit-button[aria-label="Stop streaming"]` or `button[data-testid="stop-button"]`
+  - Claude: `button[aria-label="Stop response"]` or page `[data-is-streaming="true"]`
 - When thinking ends, `bg.js` dispatches the next queued item; `content.js` types it into the editor and submits
 - Queue/state persists per tab in `chrome.storage.local`
 
@@ -45,10 +47,10 @@ If the site DOM changes, tweak the `selectors` in `content.js`. The script auto�
 ## Hotkeys
 - Enter: queue message (Shift+Enter = newline)
 - Alt+Enter: also queues (handy if you customize Enter behavior)
-  - To change behavior, edit `hookAltEnterQueue` in `content.js`
+- To change behavior, edit `hookAltEnterQueue` in `content.js`
 
 ## Troubleshooting
-- Panel not visible: reload the tab and ensure the URL matches the manifest’s `matches` list
+- Popover not visible: reload the tab and ensure the URL matches the manifest’s `matches` list
 - Nothing sends: selectors may be outdated; update the constants in `content.js`
 - Service worker reset: toggle the extension off/on in `chrome://extensions` and reload the page
 - Permissions: the extension needs host access for `chat.openai.com` / `chatgpt.com` / `claude.ai`

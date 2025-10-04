@@ -7,7 +7,8 @@
   "host_permissions": [
     "https://chat.openai.com/*",
     "https://chatgpt.com/*",
-    "https://*.openai.com/*"
+    "https://*.openai.com/*",
+    "https://claude.ai/*"
   ],
   "background": {
     "service_worker": "bg.js"
@@ -17,7 +18,8 @@
       "matches": [
         "https://chat.openai.com/*",
         "https://chatgpt.com/*",
-        "https://*.openai.com/*"
+        "https://*.openai.com/*",
+        "https://claude.ai/*"
       ],
       "js": ["icons.js", "content.js"],
       "css": ["content.css"],

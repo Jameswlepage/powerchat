@@ -18,14 +18,24 @@ const isVisible = (el) => el && !!(el.offsetWidth || el.offsetHeight || el.getCl
 // 1) Site adapters (selectors)       //
 ////////////////////////////////////////
 
+const SITE = (() => {
+  const h = location.hostname;
+  if (h.includes('claude.ai')) return 'claude';
+  return 'chatgpt';
+})();
+
 const selectors = {
-  // "Thinking" state signal
-  stopButton: 'button[data-testid="stop-button"], button[aria-label*="Stop streaming"]',
-  // Send button (idle state)
-  sendButton: '#composer-submit-button',
-  // Editor (ChatGPT uses ProseMirror contenteditable)
-  editor: '#prompt-textarea.ProseMirror[contenteditable="true"], div#prompt-textarea[contenteditable="true"]',
-  // Fallback textarea (if present)
+  // Thinking state selectors per site
+  stopButton: SITE === 'chatgpt'
+    ? 'button[data-testid="stop-button"], button[aria-label*="Stop streaming"]'
+    : 'button[aria-label="Stop response"], [data-is-streaming="true"] button[aria-label="Stop response"]',
+  // Send button (idle) — ChatGPT specific, Claude will use Enter fallback
+  sendButton: SITE === 'chatgpt' ? '#composer-submit-button' : 'button[aria-label="Send message"]:not([disabled])',
+  // Editor
+  editor: SITE === 'chatgpt'
+    ? '#prompt-textarea.ProseMirror[contenteditable="true"], div#prompt-textarea[contenteditable="true"]'
+    : 'div[role="textbox"].ProseMirror[contenteditable="true"], [contenteditable="true"][role="textbox"]',
+  // Fallback textarea (rare)
   fallbackTextarea: 'textarea[name="prompt-textarea"]'
 };
 
@@ -58,9 +68,11 @@ function getEditor() {
 ////////////////////////////////////////
 
 let lastBusy = undefined;
+let suppressEnterOnce = false; // prevent our own synthetic Enter from re-queuing
 
 const reportBusy = debounce(() => {
-  const busy = !!getStopButton();
+  const streamingEl = document.querySelector('[data-is-streaming="true"]');
+  const busy = !!getStopButton() || !!streamingEl;
   if (busy !== lastBusy) {
     lastBusy = busy;
     chrome.runtime.sendMessage({ type: 'PAGE_STATE', busy });
@@ -72,7 +84,7 @@ mo.observe(document.documentElement, {
   subtree: true,
   childList: true,
   attributes: true,
-  attributeFilter: ['aria-label', 'data-testid', 'disabled', 'class', 'style']
+  attributeFilter: ['aria-label', 'data-testid', 'disabled', 'class', 'style', 'data-is-streaming']
 });
 window.addEventListener('load', reportBusy);
 document.addEventListener('visibilitychange', reportBusy);
@@ -82,11 +94,23 @@ setTimeout(reportBusy, 500); // initial nudge
 // 3) Typing & sending implementation //
 ////////////////////////////////////////
 
+function placeCaretAtEnd(el) {
+  try {
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    range.collapse(false);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+  } catch {}
+}
+
 function setEditorText(text) {
   const ed = getEditor();
   if (!ed) throw new Error('Composer not found.');
 
   ed.focus();
+  placeCaretAtEnd(ed);
 
   // Clear existing text
   try {
@@ -94,19 +118,37 @@ function setEditorText(text) {
     document.execCommand('insertText', false, ''); // clear
   } catch {}
   // Insert new text
+  let inserted = false;
   try {
-    document.execCommand('insertText', false, text);
-  } catch {
-    // Fallback
-    if ('value' in ed) {
-      ed.value = text;
-    } else {
-      ed.textContent = text;
-    }
+    inserted = document.execCommand('insertText', false, text);
+  } catch {}
+
+  // If execCommand failed or content still empty, try beforeinput/input events
+  if (!inserted) {
+    try {
+      const before = new InputEvent('beforeinput', { bubbles: true, cancelable: true, inputType: 'insertText', data: text });
+      ed.dispatchEvent(before);
+      const input = new InputEvent('input', { bubbles: true, cancelable: true, data: text });
+      ed.dispatchEvent(input);
+    } catch {}
   }
 
-  // Dispatch input to let the app react
-  ed.dispatchEvent(new InputEvent('input', { bubbles: true, data: text }));
+  // Paste fallback for ProseMirror if still empty
+  if (!getEditorPlainText()) {
+    try {
+      const dt = new DataTransfer();
+      dt.setData('text/plain', text);
+      const evt = new ClipboardEvent('paste', { bubbles: true, cancelable: true });
+      Object.defineProperty(evt, 'clipboardData', { value: dt });
+      ed.dispatchEvent(evt);
+    } catch {}
+  }
+
+  // Absolute fallback
+  if (!getEditorPlainText()) {
+    if ('value' in ed) ed.value = text; else ed.textContent = text;
+    ed.dispatchEvent(new InputEvent('input', { bubbles: true, data: text }));
+  }
 }
 
 function getEditorPlainText() {
@@ -135,17 +177,25 @@ async function typeAndSend(text) {
   setEditorText(text);
 
   // Give the app a moment to compose
-  await new Promise(r => setTimeout(r, 50));
+  await new Promise(r => setTimeout(r, 80));
 
-  const sendBtn = getSendButton();
-  if (sendBtn) {
-    sendBtn.click();
-    return;
+  // Prefer clicking a visible send button when available (Claude & ChatGPT)
+  let sendBtn = getSendButton();
+  if (!sendBtn && SITE === 'claude') {
+    // Wait briefly for button to enable after input
+    const start = Date.now();
+    while (Date.now() - start < 800 && !sendBtn) {
+      await new Promise(r => setTimeout(r, 60));
+      sendBtn = getSendButton();
+    }
   }
+  if (sendBtn) { sendBtn.click(); return; }
 
   // Fallback: simulate Enter on editor
   const ed = getEditor();
   if (!ed) throw new Error('Composer not found for Enter fallback.');
+  ed.focus();
+  suppressEnterOnce = true;
   const down = new KeyboardEvent('keydown', { key: 'Enter', code: 'Enter', bubbles: true });
   const up = new KeyboardEvent('keyup', { key: 'Enter', code: 'Enter', bubbles: true });
   ed.dispatchEvent(down);
@@ -290,6 +340,7 @@ function hookAltEnterQueue() {
     // Only when focus is inside the editor
     const ed = getEditor();
     if (!ed || !ed.contains(document.activeElement)) return;
+    if (suppressEnterOnce && e.key === 'Enter') { suppressEnterOnce = false; return; }
     // Alt+Enter: queue regardless of busy state
     if (e.altKey && e.key === 'Enter') {
       e.preventDefault();
@@ -472,12 +523,17 @@ function positionPopover(btn) {
 
 function createHeaderQueueButton() {
   if (document.getElementById(HEADER_QUEUE_BTN_ID)) return;
-  const header = document.getElementById('page-header');
+  const header = document.querySelector('header#page-header, header[data-testid="page-header"], header');
   if (!header) return;
-  const actions = header.querySelector('#conversation-header-actions');
-  if (!actions) return;
-  const shareBtn = actions.querySelector('[data-testid="share-chat-button"]');
-  if (!shareBtn) return;
+  // ChatGPT actions area
+  let shareBtn = header.querySelector('#conversation-header-actions [data-testid="share-chat-button"]');
+  // Claude header containers
+  let claudeActions = null; // absolutely positioned actions cluster
+  let rightGroup = null;    // inline right cluster fallback
+  if (!shareBtn) {
+    claudeActions = document.querySelector('[data-testid="wiggle-controls-actions"]');
+    rightGroup = header.querySelector('.right-3.flex.gap-2, .right-3');
+  }
 
   const btn = document.createElement('button');
   btn.id = HEADER_QUEUE_BTN_ID;
@@ -490,8 +546,31 @@ function createHeaderQueueButton() {
   label.textContent = 'Queue';
   btn.appendChild(label);
 
-  // Place to the left of Share
-  shareBtn.insertAdjacentElement('beforebegin', btn);
+  if (shareBtn) {
+    // Place to the left of Share on ChatGPT
+    shareBtn.insertAdjacentElement('beforebegin', btn);
+  } else if (claudeActions) {
+    // Claude: Prefer the absolute actions cluster
+    const claudeShare = claudeActions.querySelector('[data-testid="wiggle-controls-actions-share"]');
+    if (claudeShare) claudeShare.insertAdjacentElement('beforebegin', btn);
+    else claudeActions.insertAdjacentElement('afterbegin', btn);
+    // Keep ordering if Share mounts later
+    const reorder = new MutationObserver(() => {
+      const q = document.getElementById(HEADER_QUEUE_BTN_ID);
+      const sh = claudeActions.querySelector('[data-testid="wiggle-controls-actions-share"]');
+      if (q && sh && q.nextElementSibling !== sh) {
+        sh.insertAdjacentElement('beforebegin', q);
+      }
+    });
+    reorder.observe(claudeActions, { childList: true, subtree: false });
+  } else if (rightGroup) {
+    // Fallback to inline right group if absolute actions not present
+    rightGroup.insertAdjacentElement('afterbegin', btn);
+  } else {
+    // Fallback: append to header's right side wrapper
+    const wrapper = header.querySelector('.flex.w-full.items-center.justify-between');
+    (wrapper || header).appendChild(btn);
+  }
 
   let outsideHandler = null;
   btn.addEventListener('click', () => {

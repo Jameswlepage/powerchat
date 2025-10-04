@@ -165,6 +165,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         // Keep the item in queue; you can decide to drop it instead.
         await broadcast(tabId);
         console.warn('Content error:', msg.error);
+        // Retry shortly; if page is still busy, maybeSendNext will noop and PAGE_STATE idle will trigger again.
+        setTimeout(() => {
+          maybeSendNext(tabId);
+        }, 400);
         break;
       }
 
@@ -175,4 +179,3 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 
   return true; // keep the message channel open for async sendResponse
 });
-

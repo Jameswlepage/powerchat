@@ -25,9 +25,9 @@ const SITE = (() => {
 })();
 
 const selectors = {
-  // Thinking state selectors per site
+  // Thinking state selectors per site (be precise for ChatGPT)
   stopButton: SITE === 'chatgpt'
-    ? 'button[data-testid="stop-button"], button[aria-label*="Stop streaming"]'
+    ? '#composer-submit-button[aria-label="Stop streaming"], button[data-testid="stop-button"]'
     : 'button[aria-label="Stop response"], [data-is-streaming="true"] button[aria-label="Stop response"]',
   // Send button (idle) — ChatGPT specific, Claude will use Enter fallback
   sendButton: SITE === 'chatgpt' ? '#composer-submit-button' : 'button[aria-label="Send message"]:not([disabled])',
@@ -71,7 +71,9 @@ let lastBusy = undefined;
 let suppressEnterOnce = false; // prevent our own synthetic Enter from re-queuing
 
 const reportBusy = debounce(() => {
-  const streamingEl = document.querySelector('[data-is-streaming="true"]');
+  // For ChatGPT, strictly rely on the submit button being in "Stop streaming" state.
+  // For Claude, also honor a page-level streaming flag when present.
+  const streamingEl = SITE === 'claude' ? document.querySelector('[data-is-streaming="true"]') : null;
   const busy = !!getStopButton() || !!streamingEl;
   if (busy !== lastBusy) {
     lastBusy = busy;

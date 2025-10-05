@@ -619,8 +619,8 @@ function createHeaderQueueButton() {
   btn.appendChild(label);
 
   if (shareBtn) {
-    // Place to the left of Share on ChatGPT
-    shareBtn.insertAdjacentElement('beforebegin', btn);
+    // Place next to Share (to its right) within the actions cluster
+    shareBtn.insertAdjacentElement('afterend', btn);
   } else if (claudeActions) {
     // Claude: Prefer the absolute actions cluster
     const claudeShare = claudeActions.querySelector('[data-testid="wiggle-controls-actions-share"]');

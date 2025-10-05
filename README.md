@@ -6,6 +6,8 @@ Current tool: Queue & Auto‑Send — queue multiple prompts and auto‑send the
 
 Use responsibly and in line with website terms. Selectors are tailored to each site’s current UI and may need updates if the site changes.
 
+![example of the extension in action](./images/screenshot.png)
+
 ## Features
 - Works on ChatGPT and Claude
 - Queue multiple messages; sends next when idle (busy/idle auto‑detect)

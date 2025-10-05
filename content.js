@@ -619,8 +619,10 @@ function createHeaderQueueButton() {
   btn.appendChild(label);
 
   if (shareBtn) {
-    // Place next to Share (to its right) within the actions cluster
-    shareBtn.insertAdjacentElement('afterend', btn);
+    // Insert inside the actions container, directly to the left of Share
+    const actions = shareBtn.closest('#conversation-header-actions') || shareBtn.parentElement;
+    if (actions) actions.insertBefore(btn, shareBtn);
+    else shareBtn.insertAdjacentElement('beforebegin', btn);
   } else if (claudeActions) {
     // Claude: Prefer the absolute actions cluster
     const claudeShare = claudeActions.querySelector('[data-testid="wiggle-controls-actions-share"]');

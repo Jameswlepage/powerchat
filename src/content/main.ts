@@ -10,7 +10,7 @@ import { initHotkeys, updateLocalQueueState } from './hotkeys';
 import { initLinkRefFeature } from './linkref';
 import { initExportFeature } from './export';
 
-const POPOVER_ID = 'gqp-queue-popover';
+const POPOVER_ID = 'gpt-queue-popover';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Message Handling

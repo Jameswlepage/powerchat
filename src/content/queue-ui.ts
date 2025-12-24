@@ -5,7 +5,7 @@ import { SITE, getStopButton } from './site-adapter';
 import { debounce, escapeHtml, placeCaretAtEnd, safeSendMessage } from './utils';
 import { createIcon } from './icons';
 
-const POPOVER_ID = 'gqp-queue-popover';
+const POPOVER_ID = 'gpt-queue-popover';
 const HEADER_QUEUE_BTN_ID = 'gqp-header-queue-btn';
 
 let lastQueueLength = 0;

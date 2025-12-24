@@ -25,6 +25,9 @@ coverage/
 .env
 .env.*
 
+# Debug/test captures
+cgpt-states/
+
 # Misc
 *.zip
 *.tar.gz
